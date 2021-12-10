@@ -53,13 +53,14 @@ module Fastlane
 
         session.sftp.connect do |sftp|
           Helper::SftpHelper.remote_rmdir(sftp, target_dir) if delete_target_dir
-          Helper::SftpHelper.remote_mkdir(sftp, target_dir)
+          Helper::SftpHelper.remote_mkdir(sftp, target_dir) if !Helper::SftpHelper.remote_dir_exists?(sftp, target_dir)
           uploads = []
           files.each do |file|
             next unless Helper::SftpHelper.check_file(file)
 
             re = Helper::SftpHelper.get_target_file_path(file, target_dir)
             if File.directory?(file)
+              Helper::SftpHelper.remote_rmdir(sftp, re) if Helper::SftpHelper.remote_dir_exists?(sftp, re)
               Helper::SftpHelper.remote_mkdir(sftp, re)
             end
             uploads.push(upload_file(sftp, file, re))
